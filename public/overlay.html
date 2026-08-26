@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Breakroll overlay</title>
+<link rel="stylesheet" href="/style.css">
+<style>
+  body { background: none; }
+  .wrap { padding: 14px; max-width: none; }
+  .ov-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; flex-wrap: wrap; }
+  .ov-title { font-family: var(--display); font-size: 21px; letter-spacing: -0.03em; }
+  .rowcard, .cardno { background: rgba(21, 15, 34, 0.85); backdrop-filter: blur(3px); }
+  .rowgrid { margin-bottom: 12px; }
+  .cardno { font-size: 52px; min-width: 100px; }
+  .ov-foot { font-family: var(--mono); font-size: 10px; color: var(--mute); margin-top: 12px; word-break: break-all; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="ov-head"><div class="ov-title" id="t"></div><div class="counter" id="c"></div></div>
+  <div class="rowgrid" id="rows"></div>
+  <div class="stage-meta" id="meta"></div>
+  <div id="stage"></div>
+  <div class="ov-foot" id="f"></div>
+</div>
+<script>
+const q = new URLSearchParams(location.search);
+const id = q.get('b');
+const showRows = q.get('rows') !== '0';
+let lastKey = '';
+
+const esc = (s) => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+async function tick() {
+  if (!id) { document.getElementById('t').textContent = 'Add ?b=BREAK_ID to the URL'; return; }
+  try {
+    const b = await (await fetch('/api/breaks/' + encodeURIComponent(id), { cache: 'no-store' })).json();
+    if (b.error) return;
+
+    document.getElementById('t').textContent = b.title;
+    document.getElementById('c').textContent = b.left + '/' + b.total;
+    document.getElementById('f').textContent = b.secretSeed
+      ? 'revealed seed ' + b.secretSeed
+      : 'sealed ' + b.commitment.slice(0, 40) + '…';
+
+    document.getElementById('rows').innerHTML = !showRows ? '' : b.rows.map(r =>
+      '<div class="rowcard"><div class="rowname">' + esc(r.name) + '</div>' +
+      '<div class="rowleft">' + r.left + '</div><div class="rowtotal">of ' + r.total + '</div>' +
+      '<div class="bar"><i style="width:' + (r.left / r.total) * 100 + '%"></i></div></div>').join('');
+
+    const batch = b.batches[b.batches.length - 1];
+    if (!batch) return;
+    const key = batch.nonce + ':' + JSON.stringify(batch.marks || {});
+    if (key === lastKey) return;
+    const animate = lastKey !== '' && !lastKey.startsWith(batch.nonce + ':');
+    lastKey = key;
+
+    const rowName = (b.rows.find(r => r.id === batch.rowId) || {}).name || batch.rowId;
+    document.getElementById('meta').innerHTML =
+      '<span class="tag">' + esc(rowName) + '</span>' +
+      '<span class="tag">' + batch.cards.length + ' card' + (batch.cards.length === 1 ? '' : 's') + '</span>' +
+      '<span class="tag">' + (batch.mode === 'random' ? 'random' : 'seq') + '</span>' +
+      '<span class="tag">#' + batch.nonce + '</span>';
+
+    document.getElementById('stage').innerHTML = '<div class="cards">' + batch.cards.map((card, i) => {
+      const m = (batch.marks || {})[i];
+      return '<div class="cardno' + (m && m.prize ? ' chase' : '') + (animate ? ' land' : '') +
+        '" style="animation-delay:' + (animate ? i * 70 : 0) + 'ms">' + card +
+        (m ? '<span class="who">' + esc([m.buyer, m.prize].filter(Boolean).join(' · ')) + '</span>' : '') + '</div>';
+    }).join('') + '</div>';
+  } catch { /* keep the last frame up */ }
+}
+
+tick();
+setInterval(tick, 2000);
+</script>
+</body>
+</html>

@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#150f22">
+<meta name="robots" content="noindex">
+<title>Breakroll</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+
+  <header class="masthead" id="masthead">
+    <div class="mark">BREAKROLL</div>
+    <div class="eyebrow">sealed draws for live breaks</div>
+  </header>
+
+  <div id="msg"></div>
+
+  <!-- ---------------------------------------------------------- gate -->
+  <section id="gate" class="panel" hidden>
+    <label class="field">
+      <span class="field-name">Admin key</span>
+      <input id="gate-key" type="password" autocomplete="current-password" placeholder="paste your key">
+    </label>
+    <p class="hint">Set <code>ADMIN_KEY</code> in your Railway variables. If you never set one, it's printed in the deploy logs on every boot.</p>
+    <button id="gate-go" class="primary wide">Unlock</button>
+  </section>
+
+  <!-- ---------------------------------------------------------- setup -->
+  <section id="setup" hidden>
+    <div class="panel">
+      <div class="panel-title"><span class="eyebrow">Start a break</span></div>
+      <label class="field">
+        <span class="field-name">Break name</span>
+        <input id="new-title" placeholder="Tuesday Shadow Break">
+      </label>
+      <label class="field">
+        <span class="field-name">Public seed</span>
+        <input id="new-seed" placeholder="eBay show ID, or tonight's date">
+      </label>
+      <p class="hint">Say this on stream before you take a bid. It feeds every draw, so nobody can claim the results were cooked in advance.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title">
+        <span class="eyebrow">Rows</span>
+        <button id="row-add" class="tiny ghost">Add row</button>
+      </div>
+      <div id="row-editor"></div>
+      <p class="hint" style="margin-bottom:0">Card count is how many are physically in that row. Up to 2000 each.</p>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="eyebrow">Chase prizes — optional</span></div>
+      <textarea id="new-chases" spellcheck="false" placeholder="Charmander&#10;Gardevoir&#10;Umbreon"></textarea>
+      <p class="hint">One per line. You tick these off as they get pulled.</p>
+    </div>
+
+    <button id="new-go" class="primary wide">Seal the break</button>
+    <div id="recent"></div>
+  </section>
+
+  <!-- ---------------------------------------------------------- console -->
+  <section id="console" hidden>
+
+    <div class="topbar">
+      <h2 id="b-title"></h2>
+      <span class="counter" id="b-count"></span>
+      <button id="act-menu" class="tiny ghost" aria-label="Break options">•••</button>
+    </div>
+
+    <div class="panel">
+      <div class="panel-title"><span class="eyebrow">Tap a row to draw one</span></div>
+      <div class="rowgrid" id="rows"></div>
+    </div>
+
+    <div class="panel">
+      <div class="segmented" role="group" aria-label="Draw mode">
+        <button id="mode-random" aria-pressed="true">Random</button>
+        <button id="mode-seq" aria-pressed="false">Sequential</button>
+      </div>
+      <p class="modehint" id="modehint">Any card still left in the row, picked from the sealed seed.</p>
+      <div class="btnrow" id="multidraw" style="margin-top:12px"></div>
+    </div>
+
+    <div class="panel" id="queue-panel" hidden>
+      <div class="panel-title">
+        <span class="eyebrow" id="queue-count"></span>
+        <button id="queue-clear" class="tiny ghost">Clear</button>
+      </div>
+      <div class="chips" id="queue-chips"></div>
+      <button id="queue-run" class="primary wide">Run queue</button>
+    </div>
+
+    <div class="panel">
+      <div class="stage-meta" id="stage-meta"></div>
+      <div id="stage"><p class="empty">Nothing drawn yet. Tap a row above.</p></div>
+      <p class="hint" id="stage-hint" hidden style="margin:12px 0 0">Tap a card number to tag the buyer who won it.</p>
+    </div>
+
+    <div class="panel" id="hist-panel" hidden>
+      <div class="panel-title">
+        <span class="eyebrow" id="hist-count"></span>
+        <button id="act-undo" class="tiny ghost">Undo last draw</button>
+      </div>
+      <div class="hist" id="hist"></div>
+    </div>
+
+    <div class="panel" id="prize-panel" hidden>
+      <div class="panel-title"><span class="eyebrow" id="prize-count"></span></div>
+      <div class="prizes" id="prizes"></div>
+    </div>
+
+    <p class="seal" id="seal"></p>
+  </section>
+
+  <p class="foot">Random draws come from HMAC-SHA256 over the sealed seed. Reveal it after the break and anyone can recheck the whole run at <a href="/verify">/verify</a>.</p>
+</div>
+
+<!-- ---------------------------------------------------------- sheet -->
+<div class="scrim" id="scrim" hidden><div class="sheet" id="sheet"></div></div>
+
+<script src="/app.js" type="module"></script>
+</body>
+</html>
