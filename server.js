@@ -286,7 +286,9 @@ function serveStatic(res, urlPath) {
     if (err) return fail(res, 404, 'Page not found.');
     res.writeHead(200, {
       'content-type': MIME[path.extname(file)] || 'application/octet-stream',
-      'cache-control': 'no-cache',
+      // Never cache the console: a phone serving yesterday's JS mid-break is
+      // worse than an extra request.
+      'cache-control': 'no-store, must-revalidate',
     });
     res.end(data);
   });

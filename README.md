@@ -13,7 +13,8 @@ screen is genuinely what's left.
 **Sequential** takes the next consecutive card numbers, carrying on from where that row left off
 and skipping anything already gone.
 
-- **Tap a row** to draw one card.
+- **Tap a row to select it**, then press **Spin**. Selecting never draws, so a stray thumb
+  mid-stream can't burn a card. The button names the row you're about to draw from — "Spin Row 2".
 - **Multi-draw** a row for N cards at once — stepper, quick buttons, or "all".
 - **Queue** several draws across rows and run them together. Consecutive cards from the same row
   come out as one strip, so a sequential run reads `131 132 133 134`.

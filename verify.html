@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Check a break — Breakroll</title>
+<link rel="stylesheet" href="/style.css">
+</head>
+<body>
+<div class="wrap">
+  <header class="masthead">
+    <div class="mark">CHECK IT</div>
+    <div class="eyebrow">replay every draw yourself</div>
+  </header>
+
+  <div class="panel">
+    <p style="margin-top:0;font-size:15px">The seller locked in a secret seed and published its SHA-256 fingerprint <em>before</em> the break started. Once the seed is revealed, this page replays the whole run in your own browser — every random draw, in order, from the seed. Nothing here trusts the server's stored answer.</p>
+    <label class="field">
+      <span class="field-name">Break ID</span>
+      <input id="bid" placeholder="e.g. 4f2a9c1b" spellcheck="false" autocapitalize="none">
+    </label>
+    <button id="go" class="primary wide">Replay this break</button>
+  </div>
+
+  <div id="msg"></div>
+  <div id="out"></div>
+
+  <p class="foot">Fingerprint: SHA-256 of the seed. Draw #N: HMAC-SHA256(seed, "publicSeed|N|counter") as the randomness, picking from whatever was still in the row at that point, rejection sampled so every remaining card is equally likely.</p>
+</div>
+<script src="/verify.js" type="module"></script>
+</body>
+</html>
