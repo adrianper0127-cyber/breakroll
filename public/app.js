@@ -9,6 +9,8 @@ let mode = localStorage.getItem('br.mode') === 'sequential' ? 'sequential' : 'ra
 let queue = [];                 // row ids, one entry per card
 let lastRun = [];               // batches from the most recent run
 let fresh = new Set();          // nonces to animate on next paint
+let selectedRow = localStorage.getItem('br.row') || null;
+let drawing = false;
 
 // ---------------------------------------------------------------- net
 
@@ -151,6 +153,7 @@ function paint() {
   $('b-count').textContent = `${brk.left}/${brk.total}`;
 
   paintRows();
+  paintSpin();
   paintMode();
   paintQueue();
   paintStage();
@@ -164,8 +167,15 @@ function paint() {
 }
 
 function paintRows() {
+  // Default to the first row with cards left, so Spin is usable immediately.
+  if (!selectedRow || !brk.rows.some((r) => r.id === selectedRow && r.left > 0)) {
+    const firstLive = brk.rows.find((r) => r.left > 0);
+    selectedRow = firstLive ? firstLive.id : null;
+  }
+
   $('rows').innerHTML = brk.rows.map((r) => `
-    <div class="rowcard${r.left === 0 ? ' spent' : ''}" data-row="${r.id}" role="button" tabindex="0">
+    <div class="rowcard${r.left === 0 ? ' spent' : ''}" data-row="${r.id}"
+         role="button" tabindex="0" aria-pressed="${r.id === selectedRow}">
       <div class="rowname">${esc(r.name)}</div>
       <div class="rowleft">${r.left}</div>
       <div class="rowtotal">of ${r.total}</div>
@@ -173,7 +183,7 @@ function paintRows() {
     </div>`).join('');
 
   for (const el of $('rows').querySelectorAll('[data-row]')) {
-    const go = () => drawNow([el.dataset.row]);
+    const go = () => selectRow(el.dataset.row);
     el.onclick = go;
     el.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); go(); } };
   }
@@ -183,6 +193,26 @@ function paintRows() {
   for (const el of $('multidraw').querySelectorAll('[data-multi]')) {
     el.onclick = () => multiSheet(el.dataset.multi);
   }
+}
+
+function selectRow(id) {
+  if (drawing) return;
+  selectedRow = id;
+  localStorage.setItem('br.row', id);
+  paintRows();
+  paintSpin();
+}
+
+function paintSpin() {
+  const row = selectedRow ? rowById(selectedRow) : null;
+  const ready = !!row && row.left > 0 && !brk.secretSeed;
+  const btn = $('act-spin');
+  btn.disabled = !ready || drawing;
+  btn.textContent = drawing ? 'Drawing…'
+    : brk.secretSeed ? 'Break sealed'
+    : !row ? 'Every row is empty'
+    : row.left === 0 ? `${row.name} is empty`
+    : `Spin ${row.name}`;
 }
 
 function paintMode() {
@@ -300,7 +330,10 @@ async function drawNow(items) {
   if (busy || !items.length) return;
   const row = rowById(items[0]);
   if (row && row.left === 0 && items.every((i) => i === items[0])) return say(`${row.name} is empty.`);
+
   busy = true;
+  drawing = true;
+  paintSpin();
   try {
     const { batches, break: b } = await call(`/api/breaks/${brk.id}/draws`, {
       method: 'POST',
@@ -309,10 +342,20 @@ async function drawNow(items) {
     brk = b;
     lastRun = batches;
     fresh = new Set(batches.map((x) => x.nonce));
+    drawing = false;
     paint();
-  } catch (err) { say(err.message); }
+  } catch (err) {
+    drawing = false;
+    paintSpin();
+    say(err.message);
+  }
   busy = false;
 }
+
+$('act-spin').onclick = () => {
+  if (!selectedRow) return say('Pick a row first.');
+  drawNow([selectedRow]);
+};
 
 function multiSheet(rowId) {
   const row = rowById(rowId);

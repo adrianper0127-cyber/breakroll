@@ -72,7 +72,7 @@
     </div>
 
     <div class="panel">
-      <div class="panel-title"><span class="eyebrow">Tap a row to draw one</span></div>
+      <div class="panel-title"><span class="eyebrow">Select a row</span></div>
       <div class="rowgrid" id="rows"></div>
     </div>
 
@@ -82,6 +82,9 @@
         <button id="mode-seq" aria-pressed="false">Sequential</button>
       </div>
       <p class="modehint" id="modehint">Any card still left in the row, picked from the sealed seed.</p>
+
+      <button id="act-spin" class="primary wide" style="margin-top:14px" disabled>Spin</button>
+
       <div class="btnrow" id="multidraw" style="margin-top:12px"></div>
     </div>
 
@@ -116,7 +119,7 @@
     <p class="seal" id="seal"></p>
   </section>
 
-  <p class="foot">Random draws come from HMAC-SHA256 over the sealed seed. Reveal it after the break and anyone can recheck the whole run at <a href="/verify">/verify</a>.</p>
+  <p class="foot">Random draws come from HMAC-SHA256 over the sealed seed. Reveal it after the break and anyone can recheck the whole run at <a href="/verify">/verify</a>.<br><span class="eyebrow">interface v2.4 — select a row, then press Spin</span></p>
 </div>
 
 <!-- ---------------------------------------------------------- sheet -->

@@ -1,6 +1,6 @@
 {
   "name": "breakroll",
-  "version": "2.3.0",
+  "version": "2.4.0",
   "private": true,
   "description": "Sealed-seed row draw console for live card breaks",
   "type": "module",
